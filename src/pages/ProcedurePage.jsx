@@ -83,7 +83,7 @@ function ProcedurePage() {
         <PDFViewer fileUrl="/Profile_Projector_Manual.pdf" />
       </main>
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-30">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-30">
           <div className="bg-white rounded-xl shadow-2xl p-8 text-center w-full max-w-md">
             <h2 className="text-2xl font-bold text-slate-800 mb-4">
               Choose a format
@@ -95,14 +95,14 @@ function ProcedurePage() {
               <a
                 href="/Profile_Projector_Manual.pdf"
                 download
-                className="flex-1 bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-600 transition-all"
+                className="flex-1 bg-red-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-800 transition-all"
               >
                 Download PDF
               </a>
               <a
                 href="/Profile_Projector_Manual.docx"
                 download
-                className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-all"
+                className="flex-1 bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-800 transition-all"
               >
                 Download DOCX
               </a>
