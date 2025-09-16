@@ -3,17 +3,68 @@ import { Link, useNavigate } from "react-router-dom";
 import ControlPanel from "../components/ControlPanel";
 import ProjectorScreen from "../components/ProjectorScreen";
 import CalibrationModal from "../components/CalibrationModal";
+import TutorialStep from "../components/TutorialStep";
+import Highlighter from "../components/Highlighter";
+
+// Import sample images
+import gearImage from "../assets/pp-images/gear.png";
+import screwImage from "../assets/pp-images/screw.png";
+
+// --- TUTORIAL DATA ---
+const tutorials = {
+  gearOD: [
+    {
+      title: "Step 1: Select the Gear",
+      content:
+        "First, select the 'Gear' sample from the library if it's not already on the screen.",
+      target: ".sample-gear",
+    },
+    {
+      title: "Step 2: Align Top Tooth",
+      content:
+        "Use the WASD or arrow keys to move the gear until the tip of any tooth just touches the horizontal crosshair.",
+      target: ".projector-screen",
+    },
+    {
+      title: "Step 3: Zero the Y-Axis",
+      content:
+        "Click the '0' button next to the Y-axis readout to set your starting measurement point.",
+      target: ".dro-y-zero-button",
+    },
+    {
+      title: "Step 4: Move to Bottom Tooth",
+      content:
+        "Now, move the gear straight down until the tip of the opposite tooth touches the horizontal crosshair.",
+      target: ".projector-screen",
+    },
+    {
+      title: "Step 5: Read the Measurement",
+      content:
+        "The value shown on the Y-axis is the Outer Diameter (OD) of the gear. Tutorial complete!",
+      target: ".dro-panel",
+    },
+  ],
+};
 
 function LabPage() {
   const navigate = useNavigate();
 
-  // All state and logic... (omitted for brevity, remains the same as previous full code version)
+  // --- STATE MANAGEMENT ---
   const [pointPosition, setPointPosition] = useState({ x: 0, y: 0 });
   const [zeroOffset, setZeroOffset] = useState({ x: 0, y: 0 });
-  const [currentUnit, setCurrentUnit] = useState("mm");
+  const [magnification, setMagnification] = useState(10);
+  const [selectedSample, setSelectedSample] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(true);
   const [scaleFactor, setScaleFactor] = useState(1);
-  const [magnification] = useState(10);
+  const [currentUnit, setCurrentUnit] = useState("mm");
+  const [activeTutorial, setActiveTutorial] = useState(null);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  // --- CONSTANTS & REFS ---
+  const samples = [
+    { name: "Screw", image: screwImage },
+    { name: "Gear", image: gearImage },
+  ];
   const MM_PER_FRAME = 0.05;
   const animationMovementStep = MM_PER_FRAME * magnification;
   const MM_PER_CLICK = 1.0;
@@ -21,6 +72,7 @@ function LabPage() {
   const keysPressed = useRef({});
   const animationFrameId = useRef();
 
+  // --- CORE FUNCTIONS ---
   const movePoint = (axis, amountInPixels) => {
     setPointPosition((prev) => ({
       ...prev,
@@ -34,7 +86,6 @@ function LabPage() {
     setPointPosition({ x: 0, y: 0 });
     setZeroOffset({ x: 0, y: 0 });
   };
-
   const handleCalibration = () => {
     const REFERENCE_LINE_PIXELS = 400;
     const VIRTUAL_LINE_LENGTH_MM = 50;
@@ -43,7 +94,23 @@ function LabPage() {
     setScaleFactor(newScaleFactor);
     setIsCalibrating(false);
   };
+  const startTutorial = (tutorialId) => {
+    setActiveTutorial(tutorialId);
+    setTutorialStep(0);
+  };
+  const advanceTutorial = () => {
+    if (activeTutorial && tutorialStep < tutorials[activeTutorial].length - 1) {
+      setTutorialStep((prev) => prev + 1);
+    } else {
+      skipTutorial();
+    }
+  };
+  const skipTutorial = () => {
+    setActiveTutorial(null);
+    setTutorialStep(0);
+  };
 
+  // Effect for keyboard game loop
   useEffect(() => {
     const handleKeyDown = (e) => {
       keysPressed.current[e.key] = true;
@@ -76,18 +143,30 @@ function LabPage() {
     };
   }, [animationMovementStep]);
 
+  const currentStepData = activeTutorial
+    ? tutorials[activeTutorial][tutorialStep]
+    : null;
+
   return (
     <div className="bg-slate-100 min-h-screen flex flex-col font-sans">
+      {activeTutorial && (
+        <>
+          <Highlighter selector={currentStepData?.target} />
+          <TutorialStep
+            step={currentStepData}
+            onNext={advanceTutorial}
+            onSkip={skipTutorial}
+          />
+        </>
+      )}
       {isCalibrating && (
         <CalibrationModal
           onCalibrate={handleCalibration}
           onCancel={() => setIsCalibrating(false)}
         />
       )}
-
       <header className="bg-white/80 backdrop-blur-lg shadow-sm flex-shrink-0 z-10 border-b border-slate-200">
         <div className="w-full max-w-7xl mx-auto p-4 flex justify-between items-center">
-          {/* CORRECTED BACK LOGIC */}
           <button
             onClick={() => navigate("/experiment/profile-projector/procedure")}
             className="flex items-center gap-2 font-semibold text-slate-600 hover:text-blue-600"
@@ -119,10 +198,13 @@ function LabPage() {
           </nav>
         </div>
       </header>
-
       <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 p-4 lg:p-6 gap-6">
         <div className="lg:col-span-2 h-full">
-          <ProjectorScreen pointPosition={pointPosition} />
+          <ProjectorScreen
+            pointPosition={pointPosition}
+            selectedSample={selectedSample}
+            magnification={magnification}
+          />
         </div>
         <div className="lg:col-span-1 h-full">
           <ControlPanel
@@ -132,11 +214,15 @@ function LabPage() {
             setRelativeZero={setRelativeZero}
             resetAbsoluteZero={resetAbsoluteZero}
             magnification={magnification}
+            setMagnification={setMagnification}
             buttonMovementStep={buttonMovementStep}
             currentUnit={currentUnit}
             setCurrentUnit={setCurrentUnit}
             scaleFactor={scaleFactor}
             onRecalibrate={() => setIsCalibrating(true)}
+            samples={samples}
+            onSampleSelect={setSelectedSample}
+            onStartTutorial={() => startTutorial("gearOD")}
           />
         </div>
       </main>
