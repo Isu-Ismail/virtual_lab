@@ -3,9 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 // Import your images from the assets folder
-import profileProjectorDiagram from "../assets/pp-images/bench-top-profile-projector.jpg";
-import profileProjectorPhoto1 from "../assets/pp-images/vertical-profile-projector-img_04.jpg";
-import profileProjectorPhoto2 from "../assets/pp-images/vertical-profile-projector-img_05.jpg";
+import profileProjectorDiagram from "../pp-images/bench-top-profile-projector.jpg";
+import profileProjectorPhoto1 from "../pp-images/vertical-profile-projector-img_04.jpg";
+import profileProjectorPhoto2 from "../pp-images/vertical-profile-projector-img_05.jpg";
 
 // Reusable component for our animated zig-zag sections
 const FeatureSection = ({ imageUrl, title, children, reverse = false }) => {

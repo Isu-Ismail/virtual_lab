@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import ExperimentPage from "./pages/ExperimentPage";
-import ProcedurePage from "./pages/ProcedurePage"; // Import the new page
-import LabPage from "./pages/LabPage";
+import HomePage from "./HomePage";
+import ExperimentPage from "./ProfileProjector/pages/ExperimentPage";
+import ProcedurePage from "./ProfileProjector/pages/ProcedurePage"; // Import the new page
+import LabPage from "./ProfileProjector/pages/LabPage";
 
 function App() {
   return (

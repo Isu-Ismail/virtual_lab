@@ -7,8 +7,8 @@ import TutorialStep from "../components/TutorialStep";
 import Highlighter from "../components/Highlighter";
 
 // Import sample images
-import gearImage from "../assets/pp-images/gear.png";
-import screwImage from "../assets/pp-images/screw.png";
+import gearImage from "../pp-images/gear.png";
+import screwImage from "../pp-images/screw.png";
 
 // --- TUTORIAL DATA ---
 const tutorials = {
