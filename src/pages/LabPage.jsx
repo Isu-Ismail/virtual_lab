@@ -22,7 +22,7 @@ const tutorials = {
     {
       title: "Step 2: Align Top Tooth",
       content:
-        "Use the WASD or arrow keys to move the gear until the tip of any tooth just touches the horizontal crosshair.",
+        "Use the WASD keys to move the gear until the tip of any tooth just touches the horizontal crosshair.",
       target: ".projector-screen",
     },
     {
@@ -49,13 +49,13 @@ const tutorials = {
 function LabPage() {
   const navigate = useNavigate();
 
-  // --- STATE MANAGEMENT ---
+  // --- CLEANED UP STATE MANAGEMENT ---
   const [pointPosition, setPointPosition] = useState({ x: 0, y: 0 });
   const [zeroOffset, setZeroOffset] = useState({ x: 0, y: 0 });
   const [magnification, setMagnification] = useState(10);
   const [selectedSample, setSelectedSample] = useState(null);
   const [isCalibrating, setIsCalibrating] = useState(true);
-  const [scaleFactor, setScaleFactor] = useState(1);
+  const [correctionFactor, setCorrectionFactor] = useState(1); // Only one factor state
   const [currentUnit, setCurrentUnit] = useState("mm");
   const [activeTutorial, setActiveTutorial] = useState(null);
   const [tutorialStep, setTutorialStep] = useState(0);
@@ -65,10 +65,12 @@ function LabPage() {
     { name: "Screw", image: screwImage },
     { name: "Gear", image: gearImage },
   ];
+  const CALIBRATION_PIXEL_WIDTH = 400;
+  const virtualCalibrationLength = CALIBRATION_PIXEL_WIDTH / magnification;
   const MM_PER_FRAME = 0.05;
   const animationMovementStep = MM_PER_FRAME * magnification;
   const MM_PER_CLICK = 1.0;
-  const buttonMovementStep = MM_PER_CLICK * magnification;
+  const buttonMovementStep = (MM_PER_CLICK * magnification) / correctionFactor;
   const keysPressed = useRef({});
   const animationFrameId = useRef();
 
@@ -86,14 +88,13 @@ function LabPage() {
     setPointPosition({ x: 0, y: 0 });
     setZeroOffset({ x: 0, y: 0 });
   };
-  const handleCalibration = () => {
-    const REFERENCE_LINE_PIXELS = 400;
-    const VIRTUAL_LINE_LENGTH_MM = 50;
-    const internalProgramLength = REFERENCE_LINE_PIXELS / magnification;
-    const newScaleFactor = VIRTUAL_LINE_LENGTH_MM / internalProgramLength;
-    setScaleFactor(newScaleFactor);
+  const handleCalibration = (userMeasuredLength) => {
+    const newCorrectionFactor = userMeasuredLength / virtualCalibrationLength;
+    setCorrectionFactor(newCorrectionFactor);
     setIsCalibrating(false);
   };
+
+  // --- TUTORIAL FUNCTIONS ---
   const startTutorial = (tutorialId) => {
     setActiveTutorial(tutorialId);
     setTutorialStep(0);
@@ -163,6 +164,7 @@ function LabPage() {
         <CalibrationModal
           onCalibrate={handleCalibration}
           onCancel={() => setIsCalibrating(false)}
+          virtualLength={virtualCalibrationLength}
         />
       )}
       <header className="bg-white/80 backdrop-blur-lg shadow-sm flex-shrink-0 z-10 border-b border-slate-200">
@@ -198,7 +200,8 @@ function LabPage() {
           </nav>
         </div>
       </header>
-      <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 p-4 lg:p-6 gap-6">
+      {/* --- LAYOUT FIX: Added grid-rows-1 to ensure children can use h-full --- */}
+      <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 p-4 lg:p-6 gap-6 grid-rows-1">
         <div className="lg:col-span-2 h-full">
           <ProjectorScreen
             pointPosition={pointPosition}
@@ -218,11 +221,11 @@ function LabPage() {
             buttonMovementStep={buttonMovementStep}
             currentUnit={currentUnit}
             setCurrentUnit={setCurrentUnit}
-            scaleFactor={scaleFactor}
+            correctionFactor={correctionFactor}
             onRecalibrate={() => setIsCalibrating(true)}
             samples={samples}
             onSampleSelect={setSelectedSample}
-            onStartTutorial={() => startTutorial("gearOD")}
+            onStartTutorial={startTutorial}
           />
         </div>
       </main>

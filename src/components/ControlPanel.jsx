@@ -1,7 +1,6 @@
 import React from "react";
-import { Menu, Transition } from "@headlessui/react"; // Import for dropdown
+import { Menu, Transition } from "@headlessui/react";
 
-// This is a simple chevron icon for the dropdown button
 const ChevronDownIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +36,7 @@ function ControlPanel({
   buttonMovementStep,
   currentUnit,
   setCurrentUnit,
-  scaleFactor,
+  correctionFactor,
   onRecalibrate,
   samples,
   onSampleSelect,
@@ -49,61 +48,55 @@ function ControlPanel({
     cm: { factor: 0.1, symbol: "cm" },
     m: { factor: 0.001, symbol: "m" },
   };
-  const relativeX_mm =
-    ((pointPosition.x - zeroOffset.x) / magnification) * scaleFactor;
-  const relativeY_mm =
-    ((pointPosition.y - zeroOffset.y) / magnification) * scaleFactor;
-  const displayX = relativeX_mm * units[currentUnit].factor;
-  const displayY = relativeY_mm * units[currentUnit].factor;
+  const virtual_relativeX_mm = (pointPosition.x - zeroOffset.x) / magnification;
+  const virtual_relativeY_mm = (pointPosition.y - zeroOffset.y) / magnification;
+  const real_relativeX_mm = virtual_relativeX_mm * correctionFactor;
+  const real_relativeY_mm = virtual_relativeY_mm * correctionFactor;
+  const displayX = real_relativeX_mm * units[currentUnit].factor;
+  const displayY = real_relativeY_mm * units[currentUnit].factor;
 
-  // --- NEW: Define the list of tutorials for the dropdown ---
   const availableTutorials = [
-    { id: "gearOD", name: "Gear OD Measurement" },
-    // You can add more tutorials here in the future
-    // { id: 'screwPitch', name: 'Screw Pitch Measurement' },
+    { id: "gearOD", name: "Gear OD Measurement" } /* Add more tutorials here */,
   ];
 
   return (
     <div className="w-full h-full bg-white rounded-2xl p-5 shadow-lg flex flex-col gap-5 border border-slate-200">
-      {/* --- UPDATED: Replaced button with a Dropdown Menu --- */}
-      <div className="relative">
-        <Menu as="div" className="relative inline-block text-left w-full">
-          <div>
-            <Menu.Button className="inline-flex w-full justify-center rounded-md bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
-              Show Tutorial
-              <ChevronDownIcon />
-            </Menu.Button>
-          </div>
-          <Transition
-            as={React.Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
-              <div className="px-1 py-1 ">
-                {availableTutorials.map((tutorial) => (
-                  <Menu.Item key={tutorial.id}>
-                    {({ active }) => (
-                      <button
-                        onClick={() => onStartTutorial(tutorial.id)}
-                        className={`${
-                          active ? "bg-blue-500 text-white" : "text-gray-900"
-                        } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                      >
-                        {tutorial.name}
-                      </button>
-                    )}
-                  </Menu.Item>
-                ))}
-              </div>
-            </Menu.Items>
-          </Transition>
-        </Menu>
-      </div>
+      <Menu as="div" className="relative inline-block text-left w-full">
+        <div>
+          <Menu.Button className="inline-flex w-full justify-center items-center gap-2 rounded-md bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+            Show Tutorial
+            <ChevronDownIcon />
+          </Menu.Button>
+        </div>
+        <Transition
+          as={React.Fragment}
+          enter="transition ease-out duration-100"
+          enterFrom="transform opacity-0 scale-95"
+          enterTo="transform opacity-100 scale-100"
+          leave="transition ease-in duration-75"
+          leaveFrom="transform opacity-100 scale-100"
+          leaveTo="transform opacity-0 scale-95"
+        >
+          <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none z-20">
+            <div className="px-1 py-1 ">
+              {availableTutorials.map((tutorial) => (
+                <Menu.Item key={tutorial.id}>
+                  {({ active }) => (
+                    <button
+                      onClick={() => onStartTutorial(tutorial.id)}
+                      className={`${
+                        active ? "bg-blue-500 text-white" : "text-gray-900"
+                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                      {tutorial.name}
+                    </button>
+                  )}
+                </Menu.Item>
+              ))}
+            </div>
+          </Menu.Items>
+        </Transition>
+      </Menu>
 
       <div className="bg-slate-800 text-cyan-300 p-4 rounded-xl shadow-inner border border-slate-700 dro-panel">
         <div className="flex justify-between items-center mb-2">
